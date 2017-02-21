@@ -1,0 +1,25 @@
+{
+  "name": "gqmysql",
+  "version": "0.0.2",
+  "private": false,
+  "main":"gqmysql.js",
+  "scripts": {
+    "test":"npm install \n mocha test/test.js -t 20000"
+  },
+  "dependencies": {
+    "q":"1.4.1",
+    "mysql":"",
+    "async":"",
+    "express":"3.4.0",
+    "needle":"",
+    "body-parser":"",
+    "express-myconnection":"",
+    "routes":"",
+    "underscore":""
+  },
+  "devDependencies":{
+  },
+  "update":{
+    "0.0.1":"init"
+  }
+}
