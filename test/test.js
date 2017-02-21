@@ -10,15 +10,15 @@ var server=require('./server.js');
         })
     })
 
-// todo: q_
+// todo: __q_
 // todo: head
 // todo: get
 // todo: post
 // todo: update
 // todo: delete
 
-// setup server
-// needle
+// todo: setup server
+// todo: __needle
 // todo: head
 // todo: get
 // todo: post
