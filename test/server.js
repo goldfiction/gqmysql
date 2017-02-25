@@ -31,12 +31,13 @@
     }
 
 function runserver(o,cb) {
-    o.app=app=gqmysql.mysqlRoute({
+    app=gqmysql.mysqlRoute({
         app:app,
         route:"/api/db",
         user:"root",
         password:"78567856"
     });
+    o.app=app;
     try{
         o.setup(o);
     }catch(e){}

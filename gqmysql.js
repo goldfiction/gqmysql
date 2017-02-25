@@ -11,6 +11,7 @@ var _ = require('underscore');
 var oDefault2 = {
     key: {},
     data: {},
+    db:"db",
     table: "test",
     limit: 1000000
 };
@@ -19,15 +20,36 @@ function getKeyString(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string") {
-            keys.push = "t." + i + "='" + key[i] + "'";
+            keys.push("t." + i + "='" + key[i] + "'");
         }
         else {
-            keys.push = "t." + i + "=" + key[i];
+            keys.push("t." + i + "=" + key[i]);
         }
     }
-    var keyString = keys.join(',');
-    if (keyString === "") {
-        keyString = "TRUE";
+    var keyString = keys.join(' ,');
+    if (keyString != "") {
+        keyString = "WHERE "+keyString;
+    }else{
+        keyString = "WHERE TRUE"
+    }
+    log(keys)
+    log(keyString)
+    return keyString;
+}
+
+function getKeyStringForUpsert(key) {
+    var keys = [];
+    for (var i in key) {
+        if (typeof key[i] === "string") {
+            keys.push("" + i + "=" + key[i] + "");
+        }
+        else {
+            keys.push("" + i + "=" + key[i]);
+        }
+    }
+    var keyString = keys.join(' ,');
+    if (keyString != "") {
+        keyString = "WHERE "+keyString;
     }
     return keyString;
 }
@@ -37,19 +59,19 @@ function getFieldString(data) {
     var values = [];
     var setData = [];
     for (var i in data) {
-        fields.push("`" + i + "`");
+        fields.push("" + i + "");
         if (typeof data[i] === "string") {
-            values.push("`" + data[i] + "`");
-            setData.push("`t." + i + "`=`" + data[i] + "`");
+            values.push("" + data[i] + "");
+            setData.push("" + i + "=" + data[i] + "");
         }
         else {
             values.push(data[i]);
-            setData.push("`t." + i + "`=" + data[i]);
+            setData.push("" + i + "=" + data[i]+"");
         }
     }
-    var fieldString = fields.join(',');
-    var valueString = values.join(',');
-    var setDataString = setData.join(',');
+    var fieldString = fields.join(', ');
+    var valueString = values.join(', ');
+    var setDataString = setData.join(', ');
 
     return {
         fieldString: fieldString,
@@ -69,7 +91,9 @@ function m_get(o, cb) {
     o = _.defaults(o, oDefault2);
 
     o.getConnection(function (err, connection) {
-        var query = connection.query('SELECT * FROM ' + o.table + ' as t WHERE ' + getKeyString(o.key) + ' Limit ' + o.limit + ';', function (err, rows) {
+        o.queryString='SELECT * FROM ' + o.table + ' as t WHERE ' + getKeyString(o.key) + ' Limit ' + o.limit + ';';
+        var query = connection.query(o.queryString, function (err, rows) {
+            log(o.queryString)
             try {
                 log("Error reading: ");
                 log(err);
@@ -90,18 +114,28 @@ function m_get(o, cb) {
 // out: o.result
 // out: o.error
 function m_update(o, cb) {
-    o = _.defaults(o, oDefault2);
+    //o = _.defaults(o, oDefault2);
+    o.database= o.db;
     o.f = getFieldString(o.data);
+    //log(o.f)
+    //log(o.key)
+    //console.log(o)
 
     o.getConnection(function (err, connection) {
-        connection.query("INSERT INTO `" + o.table + "` as t (" + o.f.fieldsString + ") VALUES(" + o.f.valueString + ") " +
-        "ON DUPLICATE KEY UPDATE " + o.f.setDataString + " WHERE " + getKeyString(o.key) + " LIMIT=" + o.limit + ";", function (err, rows) {
+//        connection.query("INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
+//        "ON DUPLICATE KEY UPDATE " + o.f.setDataString + " WHERE " + getKeyString(o.key) + " LIMIT " + o.limit + ";", function (err, rows) {
+        o.queryString="INSERT INTO " + o.table + " (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
+        "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
+        log(o.queryString)
+        connection.query(o.queryString, function (err, rows) {
             try {
-                log("Error upserting: ");
-                log(err);
+                //log("Error upserting: ");
+                //log(err);
+                //console.log(err)
                 o.error = err;
-                o.result = JSON.stringify(rows, null, 2);
-                cb(o)
+                o.result = JSON.stringify(rows,null,2);
+                //log(o.result)
+                cb(err,o);
             } catch (e) {
             }
         });
@@ -125,7 +159,7 @@ function m_delete(o, cb) {
                 log(err);
                 o.error = err;
                 o.result = JSON.stringify(rows, null, 2);
-                cb(o)
+                cb(err,o)
             } catch (e) {
             }
         });
@@ -141,13 +175,17 @@ function m_delete(o, cb) {
 function m_head(o, cb) {
     o = _.defaults(o, oDefault2);
     o.getConnection(function (err, connection) {
-        var query = connection.query('SELETC COUNT(*) FROM ' + o.table + ' as t WHERE ' + getKeyString(o.key) + ' Limit ' + o.limit + ';', function (err, rows) {
+        o.queryString='SELECT COUNT(*) FROM ' + o.table + ' ' + getKeyString(o.key) + ' Limit ' + o.limit + ';';
+        log(o.queryString)
+        var query = connection.query(o.queryString, function (err, rows) {
             try {
-                log("Error counting: ");
-                log(err);
+                //log("Error counting: ");
+                //log(err);
                 o.error = err;
-                o.result = JSON.stringify(rows, null, 2);
-                cb(o)
+                //log(rows)
+                o.result = rows[0]['COUNT(*)']+"";
+                log(o.result)
+                cb(err,o)
             } catch (e) {
             }
         });
@@ -182,11 +220,20 @@ exports.q_delete = q_delete;
 exports.q_head = q_head;
 
 function doRes(o) {
-    o.res.send(JSON.stringify(o.result, null, 2));
+    //console.log("doRes")
+    //console.log(o.result);
+    o.res.statusCode = 200;
+    o.res.write(o.result);
+    o.res.end();
+    //o.res.send(JSON.stringify(o.result, null, 2));
 }
 
 function doReq(req,res,o){
-    var o = o||JSON.parse(JSON.stringify(req.body));
+    //console.log("doReq")
+    o = o||JSON.parse(JSON.stringify(req.body));
+    o = _.defaults(o,oDefault2);
+    o=lib.doParse(o)
+    //console.log(o)
     o.getConnection = req.getConnection;
     o.req = req;
     o.res = res;
@@ -196,31 +243,32 @@ function doReq(req,res,o){
 function r_get(req, res) {
     var o = JSON.parse(JSON.stringify(req.query));
     o=doReq(req,res,o);
-    q_get(o).then(doRes);
+    return q_get(o).then(doRes);
 }
 
 function r_post(req, res) {
     var o = doReq(req,res);
-    q_get(o).then(doRes);
+    return q_get(o).then(doRes);
 }
 
 function r_update(req, res) {
     var o = doReq(req,res);
-    q_update(o).then(doRes);
+    return q_update(o).then(doRes);
 }
 
 function r_delete(req, res) {
     var o = doReq(req,res);
-    q_delete(o).then(doRes);
+    return q_delete(o).then(doRes);
 }
 
 function r_head(req, res) {
+    //var o = JSON.parse(JSON.stringify(req.query));
     var o = doReq(req,res);
-    q_head(o).then(doRes);
+    return q_head(o).then(doRes);
 }
 
 function defaultauth(req, res, next) {
-    next(req, res);
+    next();
 }
 
 // create a crud route for given mysql db and table
@@ -242,9 +290,9 @@ function mysqlRoute(o) {
         port: 3306,
         user: "root",
         route: "/api/db",
-        auth: defaultauth
     };
     o = _.defaults(o, oDefault);
+    o.auth= o.auth||defaultauth;
     o.database = o.db;
 
     // shorts
@@ -264,11 +312,11 @@ function mysqlRoute(o) {
     );
 
     // routes
+    app.head(route, auth, r_head);
     app.get(route, auth, r_get);
     app.post(route, auth, r_post);
-    app.set(route, auth, r_update);
+    app.put(route, auth, r_update);
     app.delete(route, auth, r_delete);
-    app.head(route, auth, r_head);
 
     return app;
 }
