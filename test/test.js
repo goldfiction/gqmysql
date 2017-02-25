@@ -3,7 +3,6 @@
  */
 var assert=require("assert");
 var server=require('./server.js');
-var gqmysql=require('./../gqmysql.js');
 var needle=require('needle');
 var lib=require('./../lib.js');
 var log=lib.tryLog;
@@ -12,50 +11,61 @@ before(function(done){
     server.runserver({setup:null},function(){
         setTimeout(function(){
             done();
-        },100)
-    })
-})
-
-// todo: __q_    these cases tests q methods such as q_get
-// todo: head
-it("should be able to head",function(done){
-    needle.put('http://localhost:10080/api/db',{
-        data:{
-            name:"333",
-            value:456
-        },
-        db:"db",
-        table:"test"
-    },function(e,r){
-        var result= JSON.parse(r.body.toString());
-        console.log(result)
-        assert(result.affectedRows,1);
-        assert(e===null);
-        needle.head('http://localhost:10080/api/db',{
-            key:{name:"333"},
-            db:"db",
-            table:"test",
-            limit:1
-        },function(e,r){
-            var result= Number(r.body.toString());
-            //log(result)
-            assert(result>=1);
-            done(e);
-        })
-    })
+        },100);
+    });
 });
-// todo: get
-// todo: post
-// todo: update
-// todo: delete
 
-// todo: setup server
-// todo: __needle
-// todo: head
-// todo: get
-// todo: post
-// todo: update
-// todo: delete
+var o={
+    key:{name:"333"},
+    data:{
+        name:"333",
+        value:"456"
+    },
+    db:"db",
+    table:"test",
+    limit:10
+};
+
+it("should be able to put",function(done){
+    needle.put('http://localhost:10080/api/db',o,function(e,r){
+        var result= JSON.parse(r.body.toString());
+        //console.log(result);
+        assert(result.affectedRows,1);
+        done(e);
+    });
+});
+
+it('should be able to get',function(done){
+    needle.get('http://localhost:10080/api/db'+'?'+lib.objectToUrl(o),function(e,r){
+        var result= JSON.parse(r.body.toString());
+        assert(result.length==1);
+done(e);
+    });
+});
+
+it('should be able to post',function(done){
+    needle.post('http://localhost:10080/api/db',o,function(e,r){
+        var result= JSON.parse(r.body.toString());
+        assert(result.length==1);
+        done(e);
+    });
+});
+
+it('should be able to delete',function(done){
+    needle.delete('http://localhost:10080/api/db',o,function(e,r){
+        var result= JSON.parse(r.body.toString());
+        assert(result.affectedRows==1);
+done(e);
+    });
+});
+
+it('should find 0 entry',function(done){
+    needle.post('http://localhost:10080/api/db',o,function(e,r){
+        var result= JSON.parse(r.body.toString());
+        assert(result.length==0);
+        done(e);
+    });
+});
 
 // protocal
 // head: 1.upsert new data, 2.get this item and assert, 3.head this item and assert

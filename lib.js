@@ -13,6 +13,12 @@ function log(text) {
 }
 exports.log=log;
 
+function tryLog(text){
+    if(text)
+        log(text);
+}
+exports.tryLog=tryLog;
+
 function doParse(obj){
     try{
         if(typeof obj === 'string' || obj instanceof String) {
@@ -30,17 +36,6 @@ function doParse(obj){
 }
 exports.doParse=doParse;
 
-function tryLog(text) {
-    try {
-        if (text) {
-            log(text);
-        }
-    } catch (e) {
-        log(e);
-    }
-}
-exports.tryLog=tryLog;
-
 function doQ(o) {
     // doQ(o)
     // in: o.query
@@ -55,6 +50,19 @@ function doQ(o) {
 }
 exports.doQ = doQ;
 
+function objectToUrl(obj){
+    var urls=[];
+    for(var i in obj){
+        if(typeof obj[i]==='object'){
+            urls.push(encodeURIComponent(i)+'='+encodeURIComponent(JSON.stringify(obj[i])));
+        }else{
+            urls.push(encodeURIComponent(i)+'='+encodeURIComponent(obj[i]+''));
+        }
+    }
+    return urls.join('&');
+}
+
+exports.objectToUrl=objectToUrl;
 
 
 

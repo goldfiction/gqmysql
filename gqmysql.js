@@ -32,8 +32,8 @@ function getKeyString(key) {
     }else{
         keyString = "WHERE TRUE"
     }
-    log(keys)
-    log(keyString)
+    //log(keys)
+    //log(keyString)
     return keyString;
 }
 
@@ -88,18 +88,17 @@ function getFieldString(data) {
 // out: o.result
 // out: o.error
 function m_get(o, cb) {
-    o = _.defaults(o, oDefault2);
-
     o.getConnection(function (err, connection) {
-        o.queryString='SELECT * FROM ' + o.table + ' as t WHERE ' + getKeyString(o.key) + ' Limit ' + o.limit + ';';
+        o.queryString='SELECT * FROM ' + o.table + ' as t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
         var query = connection.query(o.queryString, function (err, rows) {
             log(o.queryString)
             try {
-                log("Error reading: ");
+                //log("Error reading: ");
                 log(err);
                 o.error = err;
                 o.result = JSON.stringify(rows, null, 2);
-                cb(o)
+                log(o.result)
+                cb(err,o)
             } catch (e) {
             }
         });
@@ -114,32 +113,22 @@ function m_get(o, cb) {
 // out: o.result
 // out: o.error
 function m_update(o, cb) {
-    //o = _.defaults(o, oDefault2);
-    o.database= o.db;
     o.f = getFieldString(o.data);
-    //log(o.f)
-    //log(o.key)
-    //console.log(o)
 
     o.getConnection(function (err, connection) {
-//        connection.query("INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
-//        "ON DUPLICATE KEY UPDATE " + o.f.setDataString + " WHERE " + getKeyString(o.key) + " LIMIT " + o.limit + ";", function (err, rows) {
         o.queryString="INSERT INTO " + o.table + " (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
         "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
         log(o.queryString)
         connection.query(o.queryString, function (err, rows) {
             try {
-                //log("Error upserting: ");
-                //log(err);
-                //console.log(err)
+                log(err);
                 o.error = err;
-                o.result = JSON.stringify(rows,null,2);
+                o.result = JSON.stringify(rows);
                 //log(o.result)
                 cb(err,o);
             } catch (e) {
             }
         });
-
     });
 }
 
@@ -150,15 +139,15 @@ function m_update(o, cb) {
 // out: o.result
 // out: o.error
 function m_delete(o, cb) {
-    o.limit = o.limit || 1;  // default delete 1 item
-    o = _.defaults(o, oDefault2);
+    o.querystring='DELETE FROM ' + o.table + ' ' + getKeyStringForUpsert(o.key) + ' LIMIT ' + o.limit + ';';
+    log(o.querystring);
     o.getConnection(function (err, connection) {
-        var query = connection.query('DELETE FROM ' + o.table + ' as t WHERE ' + getKeyString(o.key) + ' Limit ' + o.limit + ';', function (err, rows) {
+        var query = connection.query(o.querystring, function (err, rows) {
             try {
-                log("Error deleting: ");
                 log(err);
                 o.error = err;
-                o.result = JSON.stringify(rows, null, 2);
+                o.result = JSON.stringify(rows);
+                //log(o.result)
                 cb(err,o)
             } catch (e) {
             }
@@ -173,18 +162,17 @@ function m_delete(o, cb) {
 // out: o.result
 // out: o.error
 function m_head(o, cb) {
-    o = _.defaults(o, oDefault2);
     o.getConnection(function (err, connection) {
-        o.queryString='SELECT COUNT(*) FROM ' + o.table + ' ' + getKeyString(o.key) + ' Limit ' + o.limit + ';';
-        log(o.queryString)
+        o.queryString='SELECT COUNT(*) FROM ' + o.table + ' AS t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
+        log(o.queryString);
         var query = connection.query(o.queryString, function (err, rows) {
             try {
                 //log("Error counting: ");
-                //log(err);
+                log(err);
                 o.error = err;
-                //log(rows)
-                o.result = rows[0]['COUNT(*)']+"";
-                log(o.result)
+                log(rows);
+                o.result = JSON.stringify({count:rows[0]['COUNT(*)']});
+                log(o.result);
                 cb(err,o)
             } catch (e) {
             }
@@ -220,19 +208,14 @@ exports.q_delete = q_delete;
 exports.q_head = q_head;
 
 function doRes(o) {
-    //console.log("doRes")
-    //console.log(o.result);
-    o.res.statusCode = 200;
-    o.res.write(o.result);
-    o.res.end();
-    //o.res.send(JSON.stringify(o.result, null, 2));
+    o.res.send(200, o.result);
 }
 
 function doReq(req,res,o){
     //console.log("doReq")
     o = o||JSON.parse(JSON.stringify(req.body));
     o = _.defaults(o,oDefault2);
-    o=lib.doParse(o)
+    o = lib.doParse(o)
     //console.log(o)
     o.getConnection = req.getConnection;
     o.req = req;
@@ -262,8 +245,9 @@ function r_delete(req, res) {
 }
 
 function r_head(req, res) {
-    //var o = JSON.parse(JSON.stringify(req.query));
-    var o = doReq(req,res);
+    var o = JSON.parse(JSON.stringify(req.query));
+    o = doReq(req,res,o);
+    //log(o)
     return q_head(o).then(doRes);
 }
 

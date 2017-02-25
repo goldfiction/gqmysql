@@ -1,6 +1,6 @@
 {
   "name": "gqmysql",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "private": false,
   "main":"gqmysql.js",
   "scripts": {
@@ -8,18 +8,19 @@
   },
   "dependencies": {
     "q":"1.4.1",
-    "mysql":"",
-    "async":"",
-    "express":"3.4.0",
-    "needle":"",
-    "body-parser":"",
-    "express-myconnection":"",
-    "routes":"",
-    "underscore":""
+    "mysql":"2.13.0",
+    "express-myconnection":"1.0.4",
+    "underscore":"1.8.3"
   },
   "devDependencies":{
+    "routes":"2.1.0",
+    "body-parser":"1.16.1",
+    "async":"2.1.5",
+    "express":"3.4.0",
+    "needle":"1.4.5"
   },
   "update":{
+    "0.1.0":"major release, all routes tested and working",
     "0.0.1":"init"
   }
 }
