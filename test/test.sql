@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Feb 25, 2017 at 08:59 PM
+-- Generation Time: Mar 04, 2017 at 08:47 PM
 -- Server version: 5.7.16
 -- PHP Version: 7.0.15-1ubuntu2
 
@@ -28,6 +28,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `test` (
   `id` int(10) UNSIGNED NOT NULL,
+  `fasthash` varchar(1) DEFAULT NULL,
   `name` varchar(127) DEFAULT NULL,
   `value` varchar(127) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -44,7 +45,8 @@ ALTER TABLE `test`
   ADD UNIQUE KEY `id` (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `name_2` (`name`),
-  ADD KEY `id_2` (`id`);
+  ADD KEY `id_2` (`id`),
+  ADD KEY `fasthash` (`fasthash`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -54,7 +56,7 @@ ALTER TABLE `test`
 -- AUTO_INCREMENT for table `test`
 --
 ALTER TABLE `test`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

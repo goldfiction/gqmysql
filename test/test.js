@@ -16,20 +16,25 @@ before(function(done){
 });
 
 var o={
-    key:{name:"333"},
+    key:{
+        name:"333"
+    },
     data:{
         name:"333",
-        value:"456"
+        value:"456",
+        fasthash:"D"
     },
-    db:"db",
-    table:"test",
-    limit:10
+    db: "db",
+    table: "test",
+    limit: 10,
+    count: true,
+    fasthash: "D"
 };
 
 it("should be able to put",function(done){
     needle.put('http://localhost:10080/api/db',o,function(e,r){
         var result= JSON.parse(r.body.toString());
-        //console.log(result);
+        //log(result);
         assert(result.affectedRows,1);
         done(e);
     });
@@ -38,15 +43,20 @@ it("should be able to put",function(done){
 it('should be able to get',function(done){
     needle.get('http://localhost:10080/api/db'+'?'+lib.objectToUrl(o),function(e,r){
         var result= JSON.parse(r.body.toString());
-        assert(result.length==1);
-done(e);
+        //log(result)
+        result=result[0]["COUNT(*)"];
+        assert(result==1);
+        done(e);
     });
 });
 
 it('should be able to post',function(done){
+    o.count=false;
+    o.like=true;
     needle.post('http://localhost:10080/api/db',o,function(e,r){
         var result= JSON.parse(r.body.toString());
-        assert(result.length==1);
+        result=result[0]['value'];
+        assert(result=='456');
         done(e);
     });
 });
@@ -55,14 +65,16 @@ it('should be able to delete',function(done){
     needle.delete('http://localhost:10080/api/db',o,function(e,r){
         var result= JSON.parse(r.body.toString());
         assert(result.affectedRows==1);
-done(e);
+        done(e);
     });
 });
 
 it('should find 0 entry',function(done){
+    o.count=true;
     needle.post('http://localhost:10080/api/db',o,function(e,r){
         var result= JSON.parse(r.body.toString());
-        assert(result.length==0);
+        result=result[0]["COUNT(*)"];
+        assert(result==0);
         done(e);
     });
 });

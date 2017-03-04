@@ -4,6 +4,7 @@
 var lib = require("./lib.js");
 var log = lib.tryLog;
 var doQ = lib.doQ;
+var esc=lib.escapeMysqlString;
 var mysql = require('mysql');
 var connection = require('express-myconnection');
 var _ = require('underscore');
@@ -20,10 +21,10 @@ function getKeyString(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string") {
-            keys.push("t." + i + "='" + key[i] + "'");
+            keys.push("t.`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
         else {
-            keys.push("t." + i + "=" + key[i]);
+            keys.push("t.`" + esc(i) + "`=" + esc(key[i]));
         }
     }
     var keyString = keys.join(' ,');
@@ -37,14 +38,36 @@ function getKeyString(key) {
     return keyString;
 }
 
+function getLikeKeyString(key) {
+    var keys = [];
+    for (var i in key) {
+        if (typeof key[i] === "string") {
+            keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
+        }
+        else {
+            keys.push("t.`" + esc(i) + "` like %" + esc(key[i])+"%");
+        }
+    }
+    var keyString = keys.join(' ,');
+    if (keyString != "") {
+        keyString = "WHERE "+keyString;
+    }else{
+        keyString = "WHERE TRUE"
+    }
+    //log(keys)
+    //log(keyString)
+    return keyString;
+}
+
+
 function getKeyStringForUpsert(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string") {
-            keys.push("" + i + "=" + key[i] + "");
+            keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
         else {
-            keys.push("" + i + "=" + key[i]);
+            keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
     var keyString = keys.join(' ,');
@@ -59,14 +82,14 @@ function getFieldString(data) {
     var values = [];
     var setData = [];
     for (var i in data) {
-        fields.push("" + i + "");
+        fields.push("" + esc(i) + "");
         if (typeof data[i] === "string") {
-            values.push("" + data[i] + "");
-            setData.push("" + i + "=" + data[i] + "");
+            values.push("'" + esc(data[i]) + "'");
+            setData.push("`" + i + "`='" + esc(data[i]) + "'");
         }
         else {
-            values.push(data[i]);
-            setData.push("" + i + "=" + data[i]+"");
+            values.push(esc(data[i]));
+            setData.push("`" + esc(i) + "`=" + esc(data[i])+"");
         }
     }
     var fieldString = fields.join(', ');
@@ -85,11 +108,50 @@ function getFieldString(data) {
 // in: [o.key={}]
 // in: [o.table="test"]
 // in: [o.limit=1000000]
+// in: [o.count=false]  whether return count(*) instead of actual results
+// in: [o.like=false]  whether use like %...% in search
+// in: [o.fasthash=null]  whether use fasthash, if true, please make fashhash equal to a singal varchar as fasthash
+
+// fast hash can improve search speed drastically for very large data set
+// To explain, fasthash is an 8bit value (1byte) where 5 bits are from
+// 0%, 25%, 50%, 75% and 100% position of the index string converted to string buffer(such as t.`name`)
+// and 1 bit using the sum of these bits and
+// 0 for the rest of the bits. This single char can be used
+// instead of string index such as username and email
+// if there are multiple primary index, one can concatenate them
+// to form the string for fast hash
+
+// for example, if index is "abcdefg", and fast hash suppose is "01001", single bit is 0
+// fasthash is 0+01001+00 one can save this byte and use as preceding search before using string index
+// this can improve search speed drastically
+
+// fasthash should be varchar(1), null as default, index
+
 // out: o.result
 // out: o.error
+
 function m_get(o, cb) {
     o.getConnection(function (err, connection) {
-        o.queryString='SELECT * FROM ' + o.table + ' as t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
+        if(o.count){
+            o.select="COUNT(*)";
+        }
+        else{
+            o.select="*";
+        }
+
+        if(o.like){
+            o.keyString=getLikeKeyString(o.key);
+        }
+        else{
+            o.keyString=getKeyString(o.key);
+        }
+
+        if(o.fasthash){
+            o.queryString='SELECT '+o.select+' FROM ( SELECT * FROM `' + o.table + '` t1 WHERE t1.fasthash=\''+ o.fasthash+'\' ) t ' + o.keyString + ' LIMIT ' + o.limit + ';';
+        }else{
+            o.queryString = 'SELECT '+o.select+' FROM `' + o.table + '` as t ' + o.keyString + ' LIMIT ' + o.limit + ';';
+        }
+
         var query = connection.query(o.queryString, function (err, rows) {
             log(o.queryString)
             try {
@@ -116,7 +178,7 @@ function m_update(o, cb) {
     o.f = getFieldString(o.data);
 
     o.getConnection(function (err, connection) {
-        o.queryString="INSERT INTO " + o.table + " (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
+        o.queryString="INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
         "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
         log(o.queryString)
         connection.query(o.queryString, function (err, rows) {
@@ -139,7 +201,7 @@ function m_update(o, cb) {
 // out: o.result
 // out: o.error
 function m_delete(o, cb) {
-    o.querystring='DELETE FROM ' + o.table + ' ' + getKeyStringForUpsert(o.key) + ' LIMIT ' + o.limit + ';';
+    o.querystring='DELETE FROM `' + o.table + '` ' + getKeyStringForUpsert(o.key) + ' LIMIT ' + o.limit + ';';
     log(o.querystring);
     o.getConnection(function (err, connection) {
         var query = connection.query(o.querystring, function (err, rows) {
@@ -163,7 +225,7 @@ function m_delete(o, cb) {
 // out: o.error
 function m_head(o, cb) {
     o.getConnection(function (err, connection) {
-        o.queryString='SELECT COUNT(*) FROM ' + o.table + ' AS t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
+        o.queryString='SELECT COUNT(*) FROM `' + o.table + '` AS t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
         log(o.queryString);
         var query = connection.query(o.queryString, function (err, rows) {
             try {
