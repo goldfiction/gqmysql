@@ -31,21 +31,12 @@
     }
 
 function runserver(o,cb) {
-    app=gqmysql.mysqlRoute({
-        app:app,
-        route:"/api/db",
-        user:"root",
-        password:"78567856"
-    });
     o.app=app;
-    try{
-        o.setup(o);
-    }catch(e){}
-    http.createServer(app).listen(app.get('port'), function () {
+    o.app=app=gqmysql.mysqlConnect(o);
+    o.app=app=gqmysql.mysqlRoute(o);
+    http.createServer(app).listen(app.get('port'), function (e,r) {
         console.log('Server listening on port ' + app.get('port'));
-        try {
-            cb(o);
-        }catch(e){}
+        cb(e,o);
     });
 }
 

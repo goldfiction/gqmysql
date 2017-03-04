@@ -1,6 +1,6 @@
 {
   "name": "gqmysql",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": false,
   "main":"gqmysql.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "needle":"1.4.5"
   },
   "update":{
+    "0.1.3":"removed head method",
     "0.1.2":"added fasthash support",
     "0.1.1":"added quoting to query allowing spaces",
     "0.1.0":"major release, all routes tested and working",

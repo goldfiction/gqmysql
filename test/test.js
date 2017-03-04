@@ -4,12 +4,21 @@
 var assert=require("assert");
 var server=require('./server.js');
 var needle=require('needle');
+var _=require('underscore');
 var lib=require('./../lib.js');
 var log=lib.tryLog;
 
 before(function(done){
-    server.runserver({setup:null},function(){
-        setTimeout(function(){
+    server.runserver({
+        host:"localhost",
+        port:3306,
+        user:"test",
+        password:"1234",
+        database:"db",
+        route:"/api/db"
+    },function(){
+        setTimeout(function(e,o){
+            log(e);
             done();
         },100);
     });
@@ -54,6 +63,17 @@ it('should be able to post',function(done){
     o.count=false;
     o.like=true;
     needle.post('http://localhost:10080/api/db',o,function(e,r){
+        var result= JSON.parse(r.body.toString());
+        result=result[0]['value'];
+        assert(result=='456');
+        done(e);
+    });
+});
+
+it('should be able to post-2',function(done){
+    var o2= _.clone(o);
+    o2.SQL="select * from test where name=333 limit 1;";
+    needle.post('http://localhost:10080/api/db',o2,function(e,r){
         var result= JSON.parse(r.body.toString());
         result=result[0]['value'];
         assert(result=='456');

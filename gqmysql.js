@@ -4,15 +4,18 @@
 var lib = require("./lib.js");
 var log = lib.tryLog;
 var doQ = lib.doQ;
-var esc=lib.escapeMysqlString;
+var esc = lib.escapeMysqlString;
 var mysql = require('mysql');
 var connection = require('express-myconnection');
 var _ = require('underscore');
 
+var allowDirectQuery=true;// allow o.SQL to be used as direct query in get/post queries
+var allowDelete=true;// allow delete route being avaiable in the route
+
 var oDefault2 = {
     key: {},
     data: {},
-    db:"db",
+    database: "db",
     table: "test",
     limit: 1000000
 };
@@ -29,8 +32,8 @@ function getKeyString(key) {
     }
     var keyString = keys.join(' ,');
     if (keyString != "") {
-        keyString = "WHERE "+keyString;
-    }else{
+        keyString = "WHERE " + keyString;
+    } else {
         keyString = "WHERE TRUE"
     }
     //log(keys)
@@ -45,13 +48,13 @@ function getLikeKeyString(key) {
             keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
         }
         else {
-            keys.push("t.`" + esc(i) + "` like %" + esc(key[i])+"%");
+            keys.push("t.`" + esc(i) + "` like %" + esc(key[i]) + "%");
         }
     }
     var keyString = keys.join(' ,');
     if (keyString != "") {
-        keyString = "WHERE "+keyString;
-    }else{
+        keyString = "WHERE " + keyString;
+    } else {
         keyString = "WHERE TRUE"
     }
     //log(keys)
@@ -60,7 +63,7 @@ function getLikeKeyString(key) {
 }
 
 
-function getKeyStringForUpsert(key) {
+function getKeyStringForDelete(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string") {
@@ -72,7 +75,7 @@ function getKeyStringForUpsert(key) {
     }
     var keyString = keys.join(' ,');
     if (keyString != "") {
-        keyString = "WHERE "+keyString;
+        keyString = "WHERE " + keyString;
     }
     return keyString;
 }
@@ -89,7 +92,7 @@ function getFieldString(data) {
         }
         else {
             values.push(esc(data[i]));
-            setData.push("`" + esc(i) + "`=" + esc(data[i])+"");
+            setData.push("`" + esc(i) + "`=" + esc(data[i]) + "");
         }
     }
     var fieldString = fields.join(', ');
@@ -132,27 +135,31 @@ function getFieldString(data) {
 
 function m_get(o, cb) {
     o.getConnection(function (err, connection) {
-        if(o.count){
-            o.select="COUNT(*)";
-        }
-        else{
-            o.select="*";
+        if(o.SQL && allowDirectQuery){
+            o.queryString= o.SQL;
+        }else {
+            if (o.count) {
+                o.select = "COUNT(*)";
+            }
+            else {
+                o.select = "*";
+            }
+
+            if (o.like) {
+                o.keyString = getLikeKeyString(o.key);
+            }
+            else {
+                o.keyString = getKeyString(o.key);
+            }
+
+            if (o.fasthash) {
+                o.queryString = 'SELECT ' + o.select + ' FROM ( SELECT * FROM `' + o.table + '` t1 WHERE t1.fasthash=\'' + o.fasthash + '\' ) t ' + o.keyString + ' LIMIT ' + o.limit + ';';
+            } else {
+                o.queryString = 'SELECT ' + o.select + ' FROM `' + o.table + '` as t ' + o.keyString + ' LIMIT ' + o.limit + ';';
+            }
         }
 
-        if(o.like){
-            o.keyString=getLikeKeyString(o.key);
-        }
-        else{
-            o.keyString=getKeyString(o.key);
-        }
-
-        if(o.fasthash){
-            o.queryString='SELECT '+o.select+' FROM ( SELECT * FROM `' + o.table + '` t1 WHERE t1.fasthash=\''+ o.fasthash+'\' ) t ' + o.keyString + ' LIMIT ' + o.limit + ';';
-        }else{
-            o.queryString = 'SELECT '+o.select+' FROM `' + o.table + '` as t ' + o.keyString + ' LIMIT ' + o.limit + ';';
-        }
-
-        var query = connection.query(o.queryString, function (err, rows) {
+        connection.query(o.queryString, function (err, rows) {
             log(o.queryString)
             try {
                 //log("Error reading: ");
@@ -160,7 +167,7 @@ function m_get(o, cb) {
                 o.error = err;
                 o.result = JSON.stringify(rows, null, 2);
                 log(o.result)
-                cb(err,o)
+                cb(err, o)
             } catch (e) {
             }
         });
@@ -178,7 +185,7 @@ function m_update(o, cb) {
     o.f = getFieldString(o.data);
 
     o.getConnection(function (err, connection) {
-        o.queryString="INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
+        o.queryString = "INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
         "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
         log(o.queryString)
         connection.query(o.queryString, function (err, rows) {
@@ -187,7 +194,7 @@ function m_update(o, cb) {
                 o.error = err;
                 o.result = JSON.stringify(rows);
                 //log(o.result)
-                cb(err,o);
+                cb(err, o);
             } catch (e) {
             }
         });
@@ -201,7 +208,7 @@ function m_update(o, cb) {
 // out: o.result
 // out: o.error
 function m_delete(o, cb) {
-    o.querystring='DELETE FROM `' + o.table + '` ' + getKeyStringForUpsert(o.key) + ' LIMIT ' + o.limit + ';';
+    o.querystring = 'DELETE FROM `' + o.table + '` ' + getKeyStringForDelete(o.key) + ' LIMIT ' + o.limit + ';';
     log(o.querystring);
     o.getConnection(function (err, connection) {
         var query = connection.query(o.querystring, function (err, rows) {
@@ -210,38 +217,11 @@ function m_delete(o, cb) {
                 o.error = err;
                 o.result = JSON.stringify(rows);
                 //log(o.result)
-                cb(err,o)
+                cb(err, o)
             } catch (e) {
             }
         });
     });
-}
-
-// in: o.getConnection
-// in: [o.key={}]
-// in: [o.table="test"]
-// in: [o.limit=1000000]
-// out: o.result
-// out: o.error
-function m_head(o, cb) {
-    o.getConnection(function (err, connection) {
-        o.queryString='SELECT COUNT(*) FROM `' + o.table + '` AS t ' + getKeyString(o.key) + ' LIMIT ' + o.limit + ';';
-        log(o.queryString);
-        var query = connection.query(o.queryString, function (err, rows) {
-            try {
-                //log("Error counting: ");
-                log(err);
-                o.error = err;
-                log(rows);
-                o.result = JSON.stringify({count:rows[0]['COUNT(*)']});
-                log(o.result);
-                cb(err,o)
-            } catch (e) {
-            }
-        });
-
-    });
-
 }
 
 function q_get(o) {
@@ -259,24 +239,18 @@ function q_delete(o) {
     return doQ(o);
 }
 
-function q_head(o) {
-    o.query = m_head;
-    return doQ(o);
-}
-
 exports.q_get = q_get;
 exports.q_update = q_update;
 exports.q_delete = q_delete;
-exports.q_head = q_head;
 
 function doRes(o) {
     o.res.send(200, o.result);
 }
 
-function doReq(req,res,o){
+function doReq(req, res, o) {
     //console.log("doReq")
-    o = o||JSON.parse(JSON.stringify(req.body));
-    o = _.defaults(o,oDefault2);
+    o = o || JSON.parse(JSON.stringify(req.body));
+    o = _.defaults(o, oDefault2);
     o = lib.doParse(o)
     //console.log(o)
     o.getConnection = req.getConnection;
@@ -287,64 +261,43 @@ function doReq(req,res,o){
 
 function r_get(req, res) {
     var o = JSON.parse(JSON.stringify(req.query));
-    o=doReq(req,res,o);
+    o = doReq(req, res, o);
     return q_get(o).then(doRes);
 }
 
 function r_post(req, res) {
-    var o = doReq(req,res);
+    var o = doReq(req, res);
     return q_get(o).then(doRes);
 }
 
 function r_update(req, res) {
-    var o = doReq(req,res);
+    var o = doReq(req, res);
     return q_update(o).then(doRes);
 }
 
 function r_delete(req, res) {
-    var o = doReq(req,res);
+    var o = doReq(req, res);
     return q_delete(o).then(doRes);
-}
-
-function r_head(req, res) {
-    var o = JSON.parse(JSON.stringify(req.query));
-    o = doReq(req,res,o);
-    //log(o)
-    return q_head(o).then(doRes);
 }
 
 function defaultauth(req, res, next) {
     next();
 }
 
-// create a crud route for given mysql db and table
-// in: o.app
-// in: o.route="/api/db"
-// in: o.password
-// in: [o.db="db"]
-// in: [o.table="test"]
-// in: [o.auth=defaultauth]
-// in: [o.host="localhost"]
-// in: [o.port=3306]
-// in: [o.user="root"]
-function mysqlRoute(o) {
+function mysqlConnect(o) {
     // defaults
     var oDefault = {
-        db: "db",
+        database: "db",
         table: "test",
         host: "localhost",
         port: 3306,
         user: "root",
-        route: "/api/db",
+        route: "/api/db"
     };
     o = _.defaults(o, oDefault);
-    o.auth= o.auth||defaultauth;
-    o.database = o.db;
 
     // shorts
     var app = o.app;
-    var route = o.route;
-    var auth = o.auth;
 
     // start mysql connection
     app.use(
@@ -357,12 +310,35 @@ function mysqlRoute(o) {
         }, 'pool') //or single
     );
 
+    return app;
+}
+
+exports.mysqlConnect = mysqlConnect;
+
+// create a crud route for given mysql db and table
+// in: o.app
+// in: o.route="/api/db"
+// in: o.password
+// in: [o.database="db"]
+// in: [o.table="test"]
+// in: [o.auth=defaultauth]
+// in: [o.host="localhost"]
+// in: [o.port=3306]
+// in: [o.user="root"]
+function mysqlRoute(o) {
+    // shorts
+    o.auth = o.auth || defaultauth;
+    var app = o.app;
+    var route = o.route;
+    var auth = o.auth;
+
     // routes
-    app.head(route, auth, r_head);
     app.get(route, auth, r_get);
     app.post(route, auth, r_post);
     app.put(route, auth, r_update);
-    app.delete(route, auth, r_delete);
+    if(allowDelete) {
+        app.delete(route, auth, r_delete);
+    }
 
     return app;
 }
