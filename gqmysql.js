@@ -30,7 +30,7 @@ function getKeyString(key) {
             keys.push("t.`" + esc(i) + "`=" + esc(key[i]));
         }
     }
-    var keyString = keys.join(' ,');
+    var keyString = keys.join(',');
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     } else {
@@ -51,7 +51,7 @@ function getLikeKeyString(key) {
             keys.push("t.`" + esc(i) + "` like %" + esc(key[i]) + "%");
         }
     }
-    var keyString = keys.join(' ,');
+    var keyString = keys.join(',');
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     } else {
@@ -73,7 +73,7 @@ function getKeyStringForDelete(key) {
             keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
-    var keyString = keys.join(' ,');
+    var keyString = keys.join(',');
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     }
