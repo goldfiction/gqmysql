@@ -24,10 +24,10 @@ function getKeyString(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
-            keys.push("t.`" + esc(i) + "`='" + esc(key[i]) + "'");
+            keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
         else {
-            keys.push("t.`" + esc(i) + "`=" + esc(key[i]));
+            keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
     var keyString = keys.join(',');
@@ -44,7 +44,7 @@ function getKeyString(key) {
 function getLikeKeyString(key) {
     var keys = [];
     for (var i in key) {
-        if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
+        if (typeof key[i] === "string") {
             keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
         }
         else {
@@ -155,7 +155,7 @@ function m_get(o, cb) {
             if (o.fasthash) {
                 o.queryString = 'SELECT ' + o.select + ' FROM ( SELECT * FROM `' + o.table + '` t1 WHERE t1.fasthash=\'' + o.fasthash + '\' ) t ' + o.keyString + ' LIMIT ' + o.limit + ';';
             } else {
-                o.queryString = 'SELECT ' + o.select + ' FROM `' + o.table + '` as t ' + o.keyString + ' LIMIT ' + o.limit + ';';
+                o.queryString = 'SELECT ' + o.select + ' FROM `' + o.table + '` t ' + o.keyString + ' LIMIT ' + o.limit + ';';
             }
         }
 
