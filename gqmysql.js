@@ -30,7 +30,7 @@ function getKeyString(key) {
             keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
-    var keyString = keys.join(',');
+    var keyString = keys.join(' and ');
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     } else {
@@ -51,7 +51,7 @@ function getLikeKeyString(key) {
             keys.push("t.`" + esc(i) + "` like %" + esc(key[i]) + "%");
         }
     }
-    var keyString = keys.join(',');
+    var keyString = keys.join(' and ');
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     } else {
