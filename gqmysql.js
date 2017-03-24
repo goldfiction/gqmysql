@@ -23,7 +23,7 @@ var oDefault2 = {
 function getKeyString(key) {
     var keys = [];
     for (var i in key) {
-        if (typeof key[i] === "string") {
+        if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
             keys.push("t.`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
         else {
@@ -44,7 +44,7 @@ function getKeyString(key) {
 function getLikeKeyString(key) {
     var keys = [];
     for (var i in key) {
-        if (typeof key[i] === "string") {
+        if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
             keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
         }
         else {
