@@ -20,64 +20,56 @@ var oDefault2 = {
     limit: 1000000
 };
 
-function getKeyString(key) {
+function getKeyString(o) {
     var keys = [];
-    for (var i in key) {
-        if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
-            keys.push("t.`" + esc(i) + "`='" + esc(key[i]) + "'");
+    var selectKeys=[];
+    selectKeys.push("COUNT(*)");
+    var tablePrepend="t.";
+    var joinStr=' and ';
+    var selectAll="TRUE";
+    var selectStr="*";
+    var key= o.key;
+    if(o.del){
+        tablePrepend="";
+        joinStr = ',';
+        selectAll="FALSE";
+    }
+    if(!o.like) {
+        for (var i in key) {
+            if (typeof key[i] === "string" && key[i].indexOf(' ') !== -1) {
+                keys.push(tablePrepend+"`" + esc(i) + "`='" + esc(key[i]) + "'");
+                //selectKeys.push(esc(i));
+            }
+            else if (typeof key[i] !== "object") {
+                keys.push(tablePrepend+"`" + esc(i) + "`=" + esc(key[i]));
+                //selectKeys.push(esc(i));
+            }
         }
-        else if(typeof key[i]!=="object"){
-            keys.push("t.`" + esc(i) + "`=" + esc(key[i]));
+    } else {
+        for (var i in key) {
+            if (typeof key[i] === "string") {
+                keys.push(tablePrepend+"`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
+                //selectKeys.push(esc(i));
+            }
+            else if (typeof key[i] !== "object") {
+                keys.push(tablePrepend+"`" + esc(i) + "` like %" + esc(key[i]) + "%");
+                //selectKeys.push(esc(i));
+            }
         }
     }
-    var keyString = keys.join(' and ');
+    var keyString = keys.join(joinStr);
     if (keyString != "") {
         keyString = "WHERE " + keyString;
     } else {
-        keyString = "WHERE TRUE"
+        keyString = "WHERE " + selectAll;
+    }
+
+    if(o.count){
+        selectStr=selectKeys.join(',');
     }
     //log(keys)
     //log(keyString)
-    return keyString;
-}
-
-function getLikeKeyString(key) {
-    var keys = [];
-    for (var i in key) {
-        if (typeof key[i] === "string") {
-            keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
-        }
-        else if(typeof key[i]!=="object"){
-            keys.push("t.`" + esc(i) + "` like %" + esc(key[i]) + "%");
-        }
-    }
-    var keyString = keys.join(' and ');
-    if (keyString != "") {
-        keyString = "WHERE " + keyString;
-    } else {
-        keyString = "WHERE TRUE"
-    }
-    //log(keys)
-    //log(keyString)
-    return keyString;
-}
-
-
-function getKeyStringForDelete(key) {
-    var keys = [];
-    for (var i in key) {
-        if (typeof key[i] === "string") {
-            keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
-        }
-        else if(typeof key[i]!=="object"){
-            keys.push("`" + esc(i) + "`=" + esc(key[i]));
-        }
-    }
-    var keyString = keys.join(',');
-    if (keyString != "") {
-        keyString = "WHERE " + keyString;
-    }
-    return keyString;
+    return {keyStr:keyString,selectStr:selectStr};
 }
 
 function getFieldString(data) {
@@ -139,19 +131,9 @@ function m_get(o, cb) {
         if(o.SQL && allowDirectQuery){
             o.queryString= o.SQL;
         }else {
-            if (o.count) {
-                o.select = "COUNT(*),*";
-            }
-            else {
-                o.select = "*";
-            }
-
-            if (o.like) {
-                o.keyString = getLikeKeyString(o.key);
-            }
-            else {
-                o.keyString = getKeyString(o.key);
-            }
+            var keyStr=getKeyString(o);
+            o.keyString=keyStr.keyStr;
+            o.select=keyStr.selectStr;
 
             if (o.fasthash) {
                 o.queryString = 'SELECT ' + o.select + ' FROM ( SELECT * FROM `' + o.table + '` t1 WHERE t1.fasthash=\'' + o.fasthash + '\' ) t ' + o.keyString + ' LIMIT ' + o.limit + ';';
@@ -209,7 +191,7 @@ function m_update(o, cb) {
 // out: o.result
 // out: o.error
 function m_delete(o, cb) {
-    o.querystring = 'DELETE FROM `' + o.table + '` ' + getKeyStringForDelete(o.key) + ' LIMIT ' + o.limit + ';';
+    o.querystring = 'DELETE FROM `' + o.table + '` ' + getKeyString({key:o.key,del:1}).keyStr + ' LIMIT ' + o.limit + ';';
     log(o.querystring);
     o.getConnection(function (err, connection) {
         var query = connection.query(o.querystring, function (err, rows) {
