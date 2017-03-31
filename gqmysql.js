@@ -85,14 +85,15 @@ function getFieldString(data) {
     var values = [];
     var setData = [];
     for (var i in data) {
-        fields.push("" + esc(i) + "");
         if (typeof data[i] === "string") {
             values.push("'" + esc(data[i]) + "'");
             setData.push("`" + i + "`='" + esc(data[i]) + "'");
+            fields.push("" + esc(i) + "");
         }
         else if(typeof data[i]!=="object"){
             values.push(esc(data[i]));
             setData.push("`" + esc(i) + "`=" + esc(data[i]) + "");
+            fields.push("" + esc(i) + "");
         }
     }
     var fieldString = fields.join(', ');
