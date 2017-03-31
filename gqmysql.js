@@ -26,7 +26,7 @@ function getKeyString(key) {
         if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
             keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
-        else {
+        else if(typeof key[i]!=="object"){
             keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
@@ -47,7 +47,7 @@ function getLikeKeyString(key) {
         if (typeof key[i] === "string") {
             keys.push("t.`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
         }
-        else {
+        else if(typeof key[i]!=="object"){
             keys.push("t.`" + esc(i) + "` like %" + esc(key[i]) + "%");
         }
     }
@@ -69,7 +69,7 @@ function getKeyStringForDelete(key) {
         if (typeof key[i] === "string") {
             keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
-        else {
+        else if(typeof key[i]!=="object"){
             keys.push("`" + esc(i) + "`=" + esc(key[i]));
         }
     }
@@ -90,7 +90,7 @@ function getFieldString(data) {
             values.push("'" + esc(data[i]) + "'");
             setData.push("`" + i + "`='" + esc(data[i]) + "'");
         }
-        else {
+        else if(typeof key[i]!=="object"){
             values.push(esc(data[i]));
             setData.push("`" + esc(i) + "`=" + esc(data[i]) + "");
         }
