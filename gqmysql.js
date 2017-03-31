@@ -24,10 +24,10 @@ function getKeyString(key) {
     var keys = [];
     for (var i in key) {
         if (typeof key[i] === "string" && key[i].indexOf(' ')!==-1) {
-            keys.push("`" + esc(i) + "`='" + esc(key[i]) + "'");
+            keys.push("t.`" + esc(i) + "`='" + esc(key[i]) + "'");
         }
         else if(typeof key[i]!=="object"){
-            keys.push("`" + esc(i) + "`=" + esc(key[i]));
+            keys.push("t.`" + esc(i) + "`=" + esc(key[i]));
         }
     }
     var keyString = keys.join(' and ');
