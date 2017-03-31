@@ -140,7 +140,7 @@ function m_get(o, cb) {
             o.queryString= o.SQL;
         }else {
             if (o.count) {
-                o.select = "COUNT(*)";
+                o.select = "COUNT(*),*";
             }
             else {
                 o.select = "*";

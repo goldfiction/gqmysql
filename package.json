@@ -1,10 +1,11 @@
 {
   "name": "gqmysql",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": false,
   "main":"gqmysql.js",
   "scripts": {
-    "test":"npm install \n mocha test/test.js -t 20000"
+    "test":"npm install \n mocha test/test.js -t 20000",
+    "publish":"git add . \n git commit -m update \n git push \n npm publish"
   },
   "dependencies": {
     "q":"1.4.1",
