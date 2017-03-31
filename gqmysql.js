@@ -36,7 +36,8 @@ function getKeyString(o) {
     }
     if(!o.like) {
         for (var i in key) {
-            if (typeof key[i] === "string" && key[i].indexOf(' ') !== -1) {
+            //if (typeof key[i] === "string" && key[i].indexOf(' ') !== -1) {
+            if (typeof key[i] === "string") {
                 keys.push(tablePrepend+"`" + esc(i) + "`='" + esc(key[i]) + "'");
                 //selectKeys.push(esc(i));
             }
