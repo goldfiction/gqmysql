@@ -90,7 +90,7 @@ function getFieldString(data) {
             values.push("'" + esc(data[i]) + "'");
             setData.push("`" + i + "`='" + esc(data[i]) + "'");
         }
-        else if(typeof key[i]!=="object"){
+        else if(typeof data[i]!=="object"){
             values.push(esc(data[i]));
             setData.push("`" + esc(i) + "`=" + esc(data[i]) + "");
         }
