@@ -1,8 +1,10 @@
 {
   "name": "gqmysql",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "private": false,
   "main":"gqmysql.js",
+  "license":"MIT",
+  "repository":"git@github.com:goldfiction/gqmysql.git",
   "scripts": {
     "test":"npm install \n mocha test/test.js -t 20000",
     "pub":"git add . \n git commit -m update \n git push \n npm publish"
@@ -25,6 +27,7 @@
     "needle":"1.4.5"
   },
   "update":{
+    "0.1.17":"added regular o-tree methods, added license",
     "0.1.4":"fixing dependencies",
     "0.1.3":"removed head method",
     "0.1.2":"added fasthash support",

@@ -158,6 +158,8 @@ function m_get(o, cb) {
     });
 }
 
+exports.get=m_get
+
 // in: o.getConnection
 // in: [o.key={}]
 // in: [o.data={}]
@@ -185,6 +187,8 @@ function m_update(o, cb) {
     });
 }
 
+exports.update=m_update
+
 // in: o.getConnection
 // in: [o.key={}]
 // in: [o.table="test"]
@@ -207,6 +211,8 @@ function m_delete(o, cb) {
         });
     });
 }
+
+exports.delete=m_delete
 
 function q_get(o) {
     o.query = m_get;
