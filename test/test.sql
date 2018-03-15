@@ -27,10 +27,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `test` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `fasthash` varchar(1) DEFAULT NULL,
   `name` varchar(127) DEFAULT NULL,
-  `value` varchar(127) DEFAULT NULL
+  `value` varchar(127) DEFAULT NULL,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

@@ -10,10 +10,10 @@ var log=lib.tryLog;
 
 before(function(done){
     server.runserver({
-        host:"mysql",
+        host:"localhost",
         port:3306,
-        user:"test",
-        password:"1234",
+        user:"root",
+        password:"",
         database:"db",
         route:"/api/db"
     },function(){

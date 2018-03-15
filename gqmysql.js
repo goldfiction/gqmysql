@@ -173,7 +173,7 @@ function m_update(o, cb) {
     o.getConnection(function (err, connection) {
         o.queryString = "INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
         "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
-        log(o.queryString)
+        log(o.queryString);
         connection.query(o.queryString, function (err, rows) {
             try {
                 log(err);
@@ -200,6 +200,8 @@ function m_delete(o, cb) {
     log(o.querystring);
     o.getConnection(function (err, connection) {
         var query = connection.query(o.querystring, function (err, rows) {
+            //console.log(err)
+            //console.log(rows)
             try {
                 log(err);
                 o.error = err;
@@ -207,6 +209,7 @@ function m_delete(o, cb) {
                 //log(o.result)
                 cb(err, o)
             } catch (e) {
+                cb(e)
             }
         });
     });
@@ -304,6 +307,31 @@ function mysqlConnect(o) {
 }
 
 exports.mysqlConnect = mysqlConnect;
+
+function mysqlConnect2(o,cb) {
+    // defaults
+    var oDefault = {
+        database: "db",
+        table: "test",
+        host: "localhost",
+        port: 3306,
+        user: "root",
+        route: "/api/db"
+    };
+    o = _.defaults(o, oDefault);
+
+    var connection = mysql.createConnection(o);
+
+    connection.connect();
+
+    o.connection=connection;
+    o.getConnection=function(cb){
+        cb(null,connection);
+    };
+    cb(null,o);
+}
+
+exports.mysqlConnect2 = mysqlConnect2;
 
 // create a crud route for given mysql db and table
 // in: o.app
