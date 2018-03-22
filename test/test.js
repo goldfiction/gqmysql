@@ -16,11 +16,11 @@ before(function(done){
         password:"",
         database:"db",
         route:"/api/db"
-    },function(){
-        setTimeout(function(e,o){
+    },function(e){
+        setTimeout(function(){
             log(e);
-            done();
-        },100);
+            done(e);
+        },1000);
     });
 });
 

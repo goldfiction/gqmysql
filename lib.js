@@ -27,7 +27,9 @@ function doParse(obj){
     }catch(e){}
     if(typeof obj === 'object') {
         for (var i in obj) {
+            //noinspection JSUnfilteredForInLoop
             if(typeof obj[i] === 'string' || obj[i] instanceof String) {
+                //noinspection JSUnfilteredForInLoop
                 obj[i] = doParse(obj[i]);
             }
         }

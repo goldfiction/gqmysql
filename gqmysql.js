@@ -10,7 +10,7 @@ var connection = require('express-myconnection');
 var _ = require('underscore');
 
 var allowDirectQuery=true;// allow o.SQL to be used as direct query in get/post queries
-var allowDelete=true;// allow delete route being avaiable in the route
+var allowDelete=true;// allow delete route being available in the route
 
 var oDefault2 = {
     key: {},
@@ -29,14 +29,16 @@ function getKeyString(o) {
     var selectAll="TRUE";
     var selectStr="*";
     var key= o.key;
+    var i;
     if(o.del){
         tablePrepend="";
         joinStr = ',';
         selectAll="FALSE";
     }
     if(!o.like) {
-        for (var i in key) {
+        for (i in key) {
             //if (typeof key[i] === "string" && key[i].indexOf(' ') !== -1) {
+            //noinspection JSUnfilteredForInLoop
             if (typeof key[i] === "string") {
                 keys.push(tablePrepend+"`" + esc(i) + "`='" + esc(key[i]) + "'");
                 //selectKeys.push(esc(i));
@@ -47,7 +49,7 @@ function getKeyString(o) {
             }
         }
     } else {
-        for (var i in key) {
+        for (i in key) {
             if (typeof key[i] === "string") {
                 keys.push(tablePrepend+"`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
                 //selectKeys.push(esc(i));
@@ -107,7 +109,7 @@ function getFieldString(data) {
 // in: [o.limit=1000000]
 // in: [o.count=false]  whether return count(*) instead of actual results
 // in: [o.like=false]  whether use like %...% in search
-// in: [o.fasthash=null]  whether use fasthash, if true, please make fashhash equal to a singal varchar as fasthash
+// in: [o.fasthash=null]  whether use fasthash, if true, please make fashhash equal to a signal varchar as fasthash
 
 // fast hash can improve search speed drastically for very large data set
 // To explain, fasthash is an 8bit value (1byte) where 5 bits are from
@@ -144,13 +146,13 @@ function m_get(o, cb) {
         }
 
         connection.query(o.queryString, function (err, rows) {
-            log(o.queryString)
+            //log(o.queryString)
             try {
                 //log("Error reading: ");
                 log(err);
                 o.error = err;
                 o.result = JSON.stringify(rows, null, 2);
-                log(o.result)
+                //log(o.result)
                 cb(err, o)
             } catch (e) {
             }
@@ -158,7 +160,7 @@ function m_get(o, cb) {
     });
 }
 
-exports.get=m_get
+exports.get=m_get;
 
 // in: o.getConnection
 // in: [o.key={}]
@@ -173,7 +175,7 @@ function m_update(o, cb) {
     o.getConnection(function (err, connection) {
         o.queryString = "INSERT INTO `" + o.table + "` (" + o.f.fieldString + ") VALUES (" + o.f.valueString + ") " +
         "ON DUPLICATE KEY UPDATE " + o.f.setDataString + ";";
-        log(o.queryString);
+        //log(o.queryString);
         connection.query(o.queryString, function (err, rows) {
             try {
                 log(err);
@@ -187,7 +189,7 @@ function m_update(o, cb) {
     });
 }
 
-exports.update=m_update
+exports.update=m_update;
 
 // in: o.getConnection
 // in: [o.key={}]
@@ -197,7 +199,7 @@ exports.update=m_update
 // out: o.error
 function m_delete(o, cb) {
     o.querystring = 'DELETE FROM `' + o.table + '` ' + getKeyString({key:o.key,del:1}).keyStr + ' LIMIT ' + o.limit + ';';
-    log(o.querystring);
+    //log(o.querystring);
     o.getConnection(function (err, connection) {
         var query = connection.query(o.querystring, function (err, rows) {
             //console.log(err)
@@ -215,7 +217,7 @@ function m_delete(o, cb) {
     });
 }
 
-exports.delete=m_delete
+exports.delete=m_delete;
 
 function q_get(o) {
     o.query = m_get;
@@ -244,7 +246,7 @@ function doReq(req, res, o) {
     //console.log("doReq")
     o = o || JSON.parse(JSON.stringify(req.body));
     o = _.defaults(o, oDefault2);
-    o = lib.doParse(o)
+    o = lib.doParse(o);
     //console.log(o)
     o.getConnection = req.getConnection;
     o.req = req;
@@ -273,7 +275,7 @@ function r_delete(req, res) {
     return q_delete(o).then(doRes);
 }
 
-function defaultauth(req, res, next) {
+function defaultauth(req,res,next) {
     next();
 }
 

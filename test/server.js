@@ -5,8 +5,7 @@
     //this is a sample server
 
     var express = require('express');
-    var routes = require('routes');
-    var http = require('http')
+    var http = require('http');
     var path = require('path');
 
     //load customers route
@@ -18,8 +17,7 @@
     app.set('port', process.env.PORT || 10080);
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'jade');
-    app.use(express.favicon());
-    app.use(express.logger('dev'));
+    //noinspection JSCheckFunctionSignatures
     app.use(express.json());
     app.use(express.urlencoded());
     app.use(express.methodOverride());
@@ -34,7 +32,8 @@ function runserver(o,cb) {
     o.app=app;
     o.app=app=gqmysql.mysqlConnect(o);
     o.app=app=gqmysql.mysqlRoute(o);
-    http.createServer(app).listen(app.get('port'), function (e,r) {
+
+    http.createServer(app).listen(app.get('port'), function (e) {
         console.log('Server listening on port ' + app.get('port'));
         cb(e,o);
     });
