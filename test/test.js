@@ -8,6 +8,10 @@ var _=require('underscore');
 var lib=require('./../lib.js');
 var log=lib.tryLog;
 
+Object.prototype.noise=function(){    // newest tweak allowing noise functions inherited from object tolerated against queries
+    return "";
+}
+
 before(function(done){
     server.runserver({
         host:"localhost",

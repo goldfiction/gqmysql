@@ -1,6 +1,6 @@
 {
   "name": "gqmysql",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "private": false,
   "main":"gqmysql.js",
   "license":"MIT",
@@ -27,6 +27,7 @@
     "needle":"1.4.5"
   },
   "update":{
+    "0.1.21":"tweak allowing noise functions inherited from object tolerated against queries",
     "0.1.20":"removed logging of QueryString; updated commit log; altered test2.js with cleaner code.",
     "0.1.19":"updating package.json",
     "0.1.18":"Added support for initialize with mysql connector along with http request handler",

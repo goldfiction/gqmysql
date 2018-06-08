@@ -10,6 +10,10 @@ var gqmysql = require('./../gqmysql.js');
 
 var result, o, o2;
 
+Object.prototype.noise=function(){  // newest tweak allowing noise functions inherited from object tolerated against queries
+    return "";
+}
+
 before(function (done) {
     gqmysql.mysqlConnect2({
         host: "localhost",

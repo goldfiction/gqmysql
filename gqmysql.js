@@ -43,7 +43,7 @@ function getKeyString(o) {
                 keys.push(tablePrepend+"`" + esc(i) + "`='" + esc(key[i]) + "'");
                 //selectKeys.push(esc(i));
             }
-            else if (typeof key[i] !== "object") {
+            else if (typeof key[i] !== "object" && typeof key[i] !== "function") {
                 keys.push(tablePrepend+"`" + esc(i) + "`=" + esc(key[i]));
                 //selectKeys.push(esc(i));
             }
@@ -54,7 +54,7 @@ function getKeyString(o) {
                 keys.push(tablePrepend+"`" + esc(i) + "` like '%" + esc(key[i]) + "%'");
                 //selectKeys.push(esc(i));
             }
-            else if (typeof key[i] !== "object") {
+            else if (typeof key[i] !== "object" && typeof key[i] !== "function") {
                 keys.push(tablePrepend+"`" + esc(i) + "` like %" + esc(key[i]) + "%");
                 //selectKeys.push(esc(i));
             }
@@ -85,7 +85,7 @@ function getFieldString(data) {
             setData.push("`" + i + "`='" + esc(data[i]) + "'");
             fields.push("" + esc(i) + "");
         }
-        else if(typeof data[i]!=="object"){
+        else if(typeof data[i]!=="object" && typeof data[i]!=="function"){
             values.push(esc(data[i]));
             setData.push("`" + esc(i) + "`=" + esc(data[i]) + "");
             fields.push("" + esc(i) + "");
