@@ -19,7 +19,7 @@ before(function (done) {
         host: "mysql",
         port: 3306,
         user: "admin",
-        password: "mysql47284728",
+        password: "",
         database: "db",
         route: "/api/db"
     }, function (e, r) {
