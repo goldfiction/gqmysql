@@ -14,10 +14,10 @@ Object.prototype.noise=function(){    // newest tweak allowing noise functions i
 
 before(function(done){
     server.runserver({
-        host:"localhost",
+        host:"mysql",
         port:3306,
-        user:"root",
-        password:"",
+        user:"admin",
+        password:"mysql47284728",
         database:"db",
         route:"/api/db"
     },function(e){
@@ -43,6 +43,11 @@ var o={
     count: true,
     fasthash: "D"
 };
+
+it("sanity: should not crash",function(done){
+    assert(require("./../../gqmysql"));
+    done();
+});
 
 it("should be able to put",function(done){
     needle.put('http://localhost:10080/api/db',o,function(e,r){

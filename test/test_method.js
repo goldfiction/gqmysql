@@ -16,10 +16,10 @@ Object.prototype.noise=function(){  // newest tweak allowing noise functions inh
 
 before(function (done) {
     gqmysql.mysqlConnect2({
-        host: "localhost",
+        host: "mysql",
         port: 3306,
-        user: "root",
-        password: "",
+        user: "admin",
+        password: "mysql47284728",
         database: "db",
         route: "/api/db"
     }, function (e, r) {

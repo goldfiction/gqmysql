@@ -16,10 +16,6 @@
     "underscore":"1.8.3"
   },
   "devDependencies":{
-    "q":"1.4.1",
-    "mysql":"2.13.0",
-    "express-myconnection":"1.0.4",
-    "underscore":"1.8.3",
     "routes":"2.1.0",
     "body-parser":"1.16.1",
     "async":"2.1.5",
